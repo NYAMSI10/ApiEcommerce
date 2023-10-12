@@ -60,7 +60,15 @@ const userController = {
             const userexist = await prisma.user.findFirst({where: {email}})
             if (userexist) return res.json({success: false, message: `Email ${email} already exist`})
 
-            const user = await prisma.user.create({data: {name, email, phone, password, isAdmin}})
+            const user = await prisma.user.create({
+                data: {
+                    name,
+                    email,
+                    phone,
+                    password: bcrypt.hashSync(password, 10),
+                    isAdmin
+                }
+            })
             return res.json({success: true, message: `User add`, user})
         } catch (error) {
             return res.status(500).json({success: false, message: error?.message})

@@ -1,6 +1,10 @@
 const {PrismaClient} = require('@prisma/client')
 const {log} = require("prisma/prisma-client/generator-build");
 const prisma = new PrismaClient()
+const upload = require('../../helpers/multiConfig')
+
+
+
 
 
 const produitController = {
@@ -48,10 +52,18 @@ const produitController = {
     create: async (req, res) => {
 
         try {
-            const {name, description, prix, nbrestock, userId, categorieId, like, image} = req.body
+            upload.single('images')(req, res, async function (err) {
+
+            const {name, description, prix, nbrestock, userId, categorieId, like} = req.body
+
+            const file = req.file;
+            if(!file) return res.status(400).send('No image in the request')
+
+            const fileName = file.filename
+            const basePath ="http://localhost:5000/public/upload/";
+
             const produitexist = await prisma.produit.findFirst({where: {name}})
             if (produitexist) return res.json({success: false, message: `Produit ${name} already exist`})
-
             const produit = await prisma.produit.create({
                 data: {
                     name,
@@ -62,26 +74,27 @@ const produitController = {
                     images: {
                         createMany: {
                             data: {
-                                name: image
+                                name: `${basePath}${fileName}`
                             }
                         }
 
                     },
                     user: {
                         connect: {
-                            id: userId
+                            id: parseInt(userId)
                         }
                     },
                     categorie: {
                         connect: {
-                            id: categorieId
+                            id:  parseInt(categorieId)
                         }
                     }
                 },
 
 
             })
-            return res.json({success: true, message: `Produit add`, produit})
+            return res.json({success: true, message: 'Produit add', produit})
+            });
         } catch (error) {
             return res.status(500).json({success: false, message: error?.message})
 
