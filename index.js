@@ -2,21 +2,17 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const authJwt = require('./helpers/jwt')
-const secret = "bb";
-const {expressjwt} = require("express-jwt");
-
+const errorHandler = require('.//helpers/error-handler')
 
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 
+
 // middleware
 app.use(bodyParser.json());
-app.use(
-    expressjwt({
-        secret:secret, // Remplacez par votre propre clé secrète
-        algorithms: ['HS256'], // L'algorithme de signature du token
-    }).unless({ path: [ '/api/user/login'] }) // Les routes exemptées de l'authentification
-);
+app.use(authJwt())
+app.use(errorHandler)
+
 
 const produitRouter = require('./src/routes/produit')
 const categorieRouter  = require('./src/routes/categorie')

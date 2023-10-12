@@ -15,7 +15,7 @@ router.get('/:id',userController.findById)
  * methode('Post')
  *
  */
-router.post('/add',userController.create)
+router.post('/register',userController.create)
 router.post('/login',userController.login)
 
 

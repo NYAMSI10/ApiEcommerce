@@ -78,6 +78,7 @@ const userController = {
                 {
                     where: {
                         id: userId
+
                     },
                     data: {
                         name,
@@ -117,7 +118,7 @@ const userController = {
     login: async (req, res) => {
         try {
             const {email, password} = req.body
-            const secret = "bb"
+            const secret = "KGGK>HKVHJVKBKJBKBKHBMKHB"
             const user = await prisma.user.findUnique({
                 where: {
                     email: email
@@ -129,7 +130,8 @@ const userController = {
             if (user && bcrypt.compareSync(password, user.password)) {
                 const token = jwt.sign(
                     {
-                        userId: user.id
+                        userId: user.id,
+                        isAdmin: user.isAdmin,
                     },
                     secret,
                     {expiresIn: "1d"}
@@ -142,24 +144,6 @@ const userController = {
 
             }
 
-
-        } catch (error) {
-            return res.status(500).json({success: false, message: error?.message})
-
-        }
-
-
-    },
-    register: async (req, res) => {
-        try {
-
-            const user = await prisma.user.findMany({
-                orderBy: {
-                    createdAt: 'asc'
-                },
-
-            })
-            return res.json({success: true, user})
 
         } catch (error) {
             return res.status(500).json({success: false, message: error?.message})
