@@ -2,7 +2,8 @@ const {PrismaClient} = require('@prisma/client')
 const prisma = new PrismaClient()
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-
+const transport = require('../../helpers/email')
+const nodemailer = require('nodemailer')
 
 const userController = {
 
@@ -69,6 +70,18 @@ const userController = {
                     isAdmin
                 }
             })
+
+
+            const info = await transport.sendMail({
+
+                from: 'apicommerce@gmail.com',
+                to:  `${email}`,
+                subject: 'Inscription',
+                html: ` voici votre mot de passe ${password}`
+
+            })
+
+
             return res.json({success: true, message: `User add`, user})
         } catch (error) {
             return res.status(500).json({success: false, message: error?.message})
@@ -122,6 +135,33 @@ const userController = {
         }
 
     },
+
+    deleteUserandProduct: async (req, res) => {
+
+        try {
+
+            const userId = +req.params.id
+
+            const user = await prisma.user.delete({
+                where: {
+                    id: userId
+                },
+                include: {
+                    produits: {
+                        include: {
+                            images: true
+                        }
+                    }
+                }
+            })
+            return res.json({success: true, message: `User delete`})
+        } catch (error) {
+            return res.status(500).json({success: false, message: error?.message})
+
+        }
+
+    },
+
 
     login: async (req, res) => {
         try {

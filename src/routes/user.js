@@ -31,6 +31,7 @@ router.put('/update/:id',userController.update)
  *
  */
 router.delete('/delete/:id',userController.delete)
+router.delete('/deleteall/:id',userController.deleteUserandProduct)
 
 
 module.exports = router
