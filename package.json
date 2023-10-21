@@ -1,4 +1,7 @@
 {
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^5.4.1",
     "bcryptjs": "^2.4.3",
@@ -6,13 +9,21 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
+    "faker": "^6.6.6",
+    "fs-extra": "^11.1.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.6.1",
     "nodemailer": "^6.9.6",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "swagger-autogen": "^2.23.6",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
-    "prisma": "^5.4.1"
+    "@types/node": "^20.8.7",
+    "prisma": "^5.4.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   }
 }

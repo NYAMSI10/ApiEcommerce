@@ -2,7 +2,7 @@ const {PrismaClient} = require('@prisma/client')
 const {log} = require("prisma/prisma-client/generator-build");
 const prisma = new PrismaClient()
 const upload = require('../../helpers/multiConfig')
-
+const fs = require('fs')
 
 const produitController = {
 
@@ -41,11 +41,9 @@ const produitController = {
                     id: prodId
                 },
 
-                images: {
-                    select: {
-                        name: true
-                    }
-                }
+               include:{
+                    images:true
+               }
             })
             return res.json({success: true, message: `Produit find`, produit})
         } catch (error) {
@@ -57,18 +55,27 @@ const produitController = {
     create: async (req, res) => {
 
         try {
-            upload.single('images')(req, res, async function (err) {
+            upload.array('images',5)(req, res, async function (err) {
 
                 const {name, description, prix, nbrestock, userId, categorieId, like} = req.body
 
-                const file = req.file;
-                if (!file) return res.status(400).send('No image in the request')
-
-                const fileName = file.filename
-                const basePath = "http://localhost:5000/public/upload/";
-
                 const produitexist = await prisma.produit.findFirst({where: {name}})
                 if (produitexist) return res.json({success: false, message: `Produit ${name} already exist`})
+
+                const files = req.files;
+                let imagesPaths = [];
+                const basePath = "public/uploads/";
+
+
+                if(files) {
+                    files.map(file =>{
+                        imagesPaths.push({
+                            name : `${basePath}${file.filename}`});
+                    })
+                }
+
+
+
                 const produit = await prisma.produit.create({
                     data: {
                         name,
@@ -77,11 +84,10 @@ const produitController = {
                         nbrestock,
                         like,
                         images: {
-                            createMany: {
-                                data: {
-                                    name: `${basePath}${fileName}`
-                                }
+                            createMany:  {
+                                data: imagesPaths
                             }
+
 
                         },
                         user: {
@@ -95,7 +101,9 @@ const produitController = {
                             }
                         }
                     },
-
+                    include: {
+                        images: true
+                    }
 
                 })
                 return res.json({success: true, message: 'Produit add', produit})
@@ -110,67 +118,64 @@ const produitController = {
     update: async (req, res) => {
 
         try {
-            upload.single('images')(req, res, async function (err) {
+
+            upload.array('images',5)(req, res, async function (err) {
 
                 const {name, description, prix, nbrestock, userId, categorieId, like} = req.body
 
-                const file = req.file;
-                if (!file) return res.status(400).send('No image in the request')
-                const prodId = +req.params.id
-                const fileName = file.filename
+                const prodId = +req.params.id;
+
+                const files = req.files;
+                let imagesPaths = [];
                 const basePath = "http://localhost:5000/public/upload/";
 
 
-                const produit = await prisma.$transaction([
+                if(files) {
+                    files.map(file =>{
+                        imagesPaths.push({
+                            name : `${basePath}${file.filename}`});
+                    })
+                }
 
-                    prisma.produit.update(
-                        {
-                            where: {
-                                id: prodId
-                            },
-                            data: {
-                                name,
-                                description,
-                                prix,
-                                nbrestock,
-                                like,
 
-                                user: {
-                                    connect: {
-                                        id: parseInt(userId)
-                                    }
-                                },
-                                categorie: {
-                                    connect: {
-                                        id: parseInt(categorieId)
-                                    }
-                                }
-                            },
-                            include: {
-                                images: true
+
+                const produit = await prisma.produit.update({
+
+                    where: {
+
+                        id: prodId
+                    },
+                    data: {
+                        name,
+                        description,
+                        prix,
+                        nbrestock,
+                        like,
+                        images: {
+                            createMany:  {
+                                data: imagesPaths
+                            }
+
+
+                        },
+                        user: {
+                            connect: {
+                                id: parseInt(userId)
+                            }
+                        },
+                        categorie: {
+                            connect: {
+                                id: parseInt(categorieId)
                             }
                         }
-                    ),
+                    },
+                    include: {
+                        images: true
+                    }
 
-                    prisma.image.updateMany(
-                        {
-                            where: {
-                                produitId: prodId
-                            },
-                            data: {
-                                name: `${basePath}${fileName}`
-                            }
-                        }
-                    )
-
-
-                ])
-
-
-                return res.json({success: true, message: `Produit update`})
-
-            });
-        } catch (error) {
+                })
+                return res.json({success: true, message: 'Produit update', produit})
+            });        } catch (error) {
             return res.status(500).json({success: false, message: error?.message})
 
         }
@@ -186,7 +191,8 @@ const produitController = {
                     {
                         where: {
                             id: prodId
-                        }
+                        },
+
                     }
                 ),
 
@@ -208,6 +214,34 @@ const produitController = {
         }
 
     },
+
+    deleteimage: async (req, res)=>{
+
+        try
+        {
+              const imgId = +req.params.id
+              const image = await prisma.image.findFirst({ where: {id:imgId} })
+
+            if (!image) return res.json({ sucess: false, message: 'Image non trouvée' })
+
+            // Supprimer l'image du répertoire
+              fs.unlinkSync('public/uploads/9(imp).jpeg-1697541352170.jpeg');
+
+            // Supprimer l'enregistrement de l'image de la base de données
+         await prisma.image.delete({
+                where: { id:imgId },
+            });
+            return res.json({ sucess: true, message: 'Image delete' })
+
+        }catch (error) {
+            return res.status(500).json({success: false, message: error?.message})
+
+        }
+
+
+
+
+    }
 
 }
 

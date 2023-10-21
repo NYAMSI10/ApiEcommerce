@@ -50,6 +50,7 @@ const categorieController = {
 
         try {
             const {name} = req.body
+
             const categorieexist = await prisma.categorie.findFirst({where: {name}})
             if(categorieexist) return res.json({success:false, message:`Categorie ${name} already exist`})
             const categorie = await prisma.categorie.create({data:{name}})

@@ -34,6 +34,7 @@ const options = {
         "./src/routes/produit.js",
         "./src/routes/user.js",
         "./src/routes/categorie.js",
+        "./src/routes/orders.js",
 
     ]
 };
